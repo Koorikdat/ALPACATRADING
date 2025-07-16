@@ -1,6 +1,8 @@
 Project for testing algorithmic tradic algorithms using the ALPACA system.
 
 
+
+
 main.py
 
     This will determine the main logic of the software, it will allow us to call functions from the other modules
@@ -21,3 +23,7 @@ sentimentAnalysis.py
 .venv + requirements.txt + .env
 
     These set up the environment and make usage work. ensures compatibility and allows secure API calls.
+
+gui.py
+
+    This will eventually be a dashboard that will allow interaction and display inportant information
