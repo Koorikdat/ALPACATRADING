@@ -47,6 +47,9 @@ def get_top_posts(subreddit, limit=15, time_range="day"):
         permalink = p['permalink']
         upvotes = p.get('ups', 0)
         tickers = extract_tickers(title)
+
+        # I want to get the 'important' tickers and put them in a list so that i can count occurrences later and see which are the most mentioned
+
         sentiment, score = get_sentiment(title)
 
         posts.append({
