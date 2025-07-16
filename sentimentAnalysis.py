@@ -1,69 +1,72 @@
-# I want to start by querying reddit, and look into extracting the top posts from stock market related subreddits.
-# The next step will likely be to analyze these, and also look into other data sources like X or news articles.
-
 import json
 import ssl
+import re
 from urllib.request import urlopen, Request
-import sqlite3
-import pandas as pd
-
-# Bypass SSL certificate verification (need to resolve this error later on, seems to be a bandaid solution)
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+# Initialize sentiment analyzer
+analyzer = SentimentIntensityAnalyzer()
+# Bypass SSL certificate verification (temporary bandaid solution, need to revisit this)
 ssl._create_default_https_context = ssl._create_unverified_context
 
-class redditPost: 
-    def __init__(self, url): 
-        self.url = url
-        self.subreddit = None
-        self.text = None
-        self.upvotes = None
-        self.title = None
-        self.get_data()
 
-    def get_data(self):
-        connect = False
-        while not connect:
-            try:
-                req = Request(self.url, headers={'User-Agent': 'Mozilla/5.0'})
-                response = urlopen(req)
-                connect = True
-            except Exception as e:
-                print("Retrying due to error:", e)
-        data_json = json.loads(response.read())
 
-        if data_json and 'data' in data_json[0]:
-            for child in data_json[0]['data'].get('children', []):
-                post_data = child.get('data', {})
-                self.upvotes = post_data.get('ups', 0)
-                self.subreddit = post_data.get('subreddit', 'Unknown Subreddit')
-                self.title = post_data.get('title', 'No Title')
-                self.text = post_data.get('selftext', 'No Text')
-
-# Example usage
-# url = 'https://www.reddit.com/r/stories/comments/1ahp9d1/meditation_practise_has_made_taking_shits_1000x/.json'
-# test_post = sentimentAnalysis(url)
-
-# print("URL:", test_post.url)
-# print("Subreddit:", test_post.subreddit)
-# print("Title:", test_post.title)
-# print("Text:", test_post.text)
-# print("Upvotes:", test_post.upvotes)
+# Find Tickers in text, both cashtags ($AAPL) and bare tickers (AAPL)
+def extract_tickers(text):
+    cashtags = re.findall(r"\$[A-Z]{1,5}", text)
+    bare = re.findall(r"\b[A-Z]{2,5}\b", text)
+    all_tickers = set(t.replace("$", "") for t in cashtags + bare)
+    blacklist = {"YOLO", "TOS", "USD", "WSB", "DD", "CEO", "IMO", "GPT", 'FOMO', 'KMS', 'FML', 'WTF', 'IRA', 'ROI', 'AI', }  # Common false positives
+    return [t for t in all_tickers if t not in blacklist]
 
 
 
+# Get sentiment using VADER
+def get_sentiment(text):
+    scores = analyzer.polarity_scores(text)
+    compound = scores['compound']
+    if compound > 0.05:
+        sentiment = "positive"
+    elif compound < -0.05:
+        sentiment = "negative"
+    else:
+        sentiment = "neutral"
+    return sentiment, compound
 
+# Fetch top posts from a subreddit
+def get_top_posts(subreddit, limit=15, time_range="day"):
+    url = f"https://www.reddit.com/r/{subreddit}/top.json?t={time_range}&limit={limit}"
+    req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    
+    with urlopen(req) as response:
+        data = json.loads(response.read())
 
-# Get top 15 posts from r/wallstreetbets today
-url = 'https://www.reddit.com/r/wallstreetbets/top.json?t=day&limit=15'
-req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    posts = []
+    for post in data['data']['children']:
+        p = post['data']
+        title = p['title']
+        permalink = p['permalink']
+        upvotes = p.get('ups', 0)
+        tickers = extract_tickers(title)
+        sentiment, score = get_sentiment(title)
 
-with urlopen(req) as response:
-    data = json.loads(response.read())
+        posts.append({
+            'title': title,
+            'url': f"https://www.reddit.com{permalink}",
+            'upvotes': upvotes,
+            'tickers': tickers,
+            'sentiment': sentiment,
+            'compound_score': score,
+            'subreddit': subreddit
+        })
+    return posts
 
-# Extract and print title + full Reddit URL
-print("Top 15 Posts on r/wallstreetbets Today:\n")
-for i, post in enumerate(data['data']['children'], start=1):
-    post_data = post['data']
-    title = post_data['title']
-    permalink = post_data['permalink']
-    full_url = f"https://www.reddit.com{permalink}"
-    print(f"{i}. {title}\n   {full_url}\n")
+subreddits = ["wallstreetbets", "stocks", "investing"]
+for sub in subreddits:
+    print(f"\nTop posts from r/{sub}:\n{'-'*50}")
+    top_posts = get_top_posts(sub)
+    for i, post in enumerate(top_posts, start=1):
+        print(f"{i}. {post['title']}")
+        print(f"   URL: {post['url']}")
+        print(f"   Tickers: {post['tickers']}")
+        print(f"   Sentiment: {post['sentiment']} (score: {post['compound_score']})")
+        print(f"   Upvotes: {post['upvotes']}\n")
