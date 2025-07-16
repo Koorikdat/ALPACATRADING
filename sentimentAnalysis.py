@@ -4,11 +4,13 @@
 import json
 import ssl
 from urllib.request import urlopen, Request
+import sqlite3
+import pandas as pd
 
-# Bypass SSL certificate verification (for macOS SSL bug)
+# Bypass SSL certificate verification (need to resolve this error later on, seems to be a bandaid solution)
 ssl._create_default_https_context = ssl._create_unverified_context
 
-class sentimentAnalysis: 
+class redditPost: 
     def __init__(self, url): 
         self.url = url
         self.subreddit = None

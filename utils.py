@@ -2,6 +2,11 @@
 import os
 import alpaca_trade_api as tradeapi
 from dotenv import load_dotenv
+import json
+import ssl
+from urllib.request import urlopen, Request
+import sqlite3
+import pandas as pd
 
 load_dotenv()
 

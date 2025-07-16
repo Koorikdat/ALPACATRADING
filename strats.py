@@ -1,5 +1,10 @@
 # strategies.py
 from utils import get_bars, get_current_price, buy_stock
+import json
+import ssl
+from urllib.request import urlopen, Request
+import sqlite3
+import pandas as pd
 
 def simple_algo(ticker="AAPL", threshold=200):
     bars = get_bars(ticker, "1Min", 5)
