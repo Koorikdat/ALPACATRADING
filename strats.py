@@ -17,3 +17,13 @@ def simple_algo(ticker="AAPL", threshold=200):
         buy_stock(ticker, 1)
     else:
         print(f"{ticker} is above ${threshold}, not buying.")
+
+
+def FibLevels():
+
+
+    print ("hello")
+
+
+
+FibLevels()

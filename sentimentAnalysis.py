@@ -32,6 +32,7 @@ def get_sentiment(text):
         sentiment = "neutral"
     return sentiment, compound
 
+
 # Fetch top posts from a subreddit
 def get_top_posts(subreddit, limit=15, time_range="day"):
     url = f"https://www.reddit.com/r/{subreddit}/top.json?t={time_range}&limit={limit}"
@@ -73,3 +74,4 @@ for sub in subreddits:
         print(f"   Tickers: {post['tickers']}")
         print(f"   Sentiment: {post['sentiment']} (score: {post['compound_score']})")
         print(f"   Upvotes: {post['upvotes']}\n")
+

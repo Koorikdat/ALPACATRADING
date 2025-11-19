@@ -26,8 +26,7 @@ def preliminary():
         clock = api.get_clock()
         if not clock.is_open:
             print("Market is closed — cannot place live orders")
-            return False
-    
+            return False    
         
     except Exception as e:
         print(f"Error checking market status: {e}")
@@ -46,9 +45,6 @@ def cancel_all_open_orders():
     for order in orders:
         api.cancel_order(order.id)
     print(f"Cancelled {len(orders)} open order(s).")
-
-
-
 
 
 
