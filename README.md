@@ -1,13 +1,14 @@
-Modular Algorithmic Trading Framework (Paper Trading)
-Status
+Modular Algorithmic Trading Framework
+Paper Trading Infrastructure (Research-Oriented)
+⚠ Project Status
 
 This project is currently paused due to brokerage API access limitations in Canada affecting the Alpaca paper trading environment.
 
-The architecture and infrastructure remain intact. Future iterations will migrate toward a broker-agnostic execution layer.
+The system architecture remains fully intact. Future iterations will migrate toward a broker-agnostic execution layer.
 
-Summary
+Overview
 
-This project is a modular algorithmic trading framework designed for:
+This repository contains a modular algorithmic trading framework built for:
 
 Strategy prototyping
 
@@ -19,78 +20,85 @@ Risk-aware order placement
 
 Persistent trade logging
 
-Sentiment-based signal integration
+Sentiment-based signal enrichment
 
-The system was built with separation of concerns in mind: execution logic, strategy logic, data access, and persistence are deliberately decoupled.
+The design emphasizes infrastructure over scripting.
 
-This is infrastructure-first design, not a single-script trading bot.
+This is not a single-file trading bot — it is structured as a layered system.
 
-System Design
-Architectural Principles
+System Architecture
+Design Principles
 
-Modular decomposition of trading components
+Separation of concerns
 
-Reusable execution and data utilities
+Reusable execution layer
 
-Clear separation between signal generation and order execution
+Strategy abstraction
 
 Persistent logging independent of broker
 
-Designed for eventual broker abstraction
+Designed for broker replacement
 
 Project Structure
 .
 ├── main.py                # Orchestration layer
 ├── strats.py              # Strategy definitions
 ├── utils.py               # Core execution + data layer
-├── sentimentAnalysis.py   # Signal enrichment module
+├── sentimentAnalysis.py   # Signal enrichment
 ├── gui.py                 # Dashboard prototype
-├── trading_log.db         # Local SQLite store
+├── trading_log.db         # SQLite persistence
 ├── requirements.txt
 └── .env
 
-Core Modules
-main.py — Orchestration Layer
+Core Components
+1. main.py
+Orchestration Layer
 
-Validates account state and market status
+Responsible for runtime control:
 
-Executes strategy functions
+Validates account state
 
-Handles execution sequencing
+Checks market open/close status
 
-Displays portfolio state before/after actions
+Executes strategy logic
 
-Acts as the runtime controller.
+Displays portfolio state before and after actions
 
-strats.py — Strategy Layer
+Acts as the execution controller of the system.
 
-Defines signal logic.
+2. strats.py
+Strategy Layer
 
-Example included:
+Defines signal-generation logic.
+
+Example implemented:
 
 simple_algo(ticker, threshold)
 
 Pulls recent intraday bars
 
-Compares last price to threshold
+Extracts latest close
 
-Triggers execution through utility layer
+Compares against threshold
 
-Strategies remain intentionally lightweight and depend on reusable infrastructure.
+Triggers execution via utility layer
+
+Strategies remain intentionally lightweight and depend on infrastructure from utils.py.
 
 This allows:
 
-Rapid strategy iteration
+Rapid iteration
 
-Parameter experimentation
+Clean experimentation
 
-Easy extension to multiple models
+Strategy isolation from API logic
 
-utils.py — Core Engine (Execution + Data Layer)
+3. utils.py
+Core Engine (Execution + Data Layer)
 
-This is the backbone of the system.
+This is the workhorse of the codebase.
 
-It encapsulates:
+It encapsulates nearly all system functionality.
 
 Brokerage Integration
 
@@ -98,9 +106,11 @@ Authentication
 
 Account status retrieval
 
-Market clock checks
+Market clock validation
 
 Order submission (market, limit, stop-loss)
+
+Order history retrieval
 
 Market Data Access
 
@@ -116,39 +126,41 @@ Portfolio & Risk Utilities
 
 Position inspection
 
-Performance calculation over time windows
-
 Buying power checks
+
+Performance calculation over rolling windows
 
 Risk assessment helpers
 
-Persistence Layer
+Persistence Layer (SQLite)
 
-Automatic SQLite database initialization
+Automatic database initialization
 
 Trade logging
 
 Historical trade retrieval
 
-Daily performance storage
+Daily performance tracking
 
-The goal is to isolate external dependencies and keep strategy code free of API-specific details.
+By centralizing these functions, strategy logic remains clean and portable.
 
-sentimentAnalysis.py — Signal Enrichment
+4. sentimentAnalysis.py
+Alternative Data Module
 
 Implements lightweight sentiment scoring using VADER.
 
-Features:
+Capabilities:
 
-Ticker extraction from Reddit post titles
+Extracts tickers from Reddit post titles
 
-Sentiment classification (positive / neutral / negative)
+Classifies sentiment (positive / neutral / negative)
 
-Compound sentiment scoring
+Produces compound sentiment scores
 
-Designed to augment price-based signals with alternative data inputs.
+Designed to augment price-based strategies with alternative signals.
 
-gui.py — Interface Prototype
+5. gui.py
+Interface Prototype
 
 Built with Tkinter.
 
@@ -156,27 +168,43 @@ Current functionality:
 
 Manual ticker input
 
-Price retrieval using yfinance
+Price retrieval via yfinance
 
-Basic display layer
+Simple display layer
 
-Future goal: evolve into a monitoring dashboard for:
+Future goal:
 
-Portfolio metrics
+Portfolio monitoring dashboard
 
-Strategy state
+Strategy state visualization
 
-Trade logs
+Trade history viewer
 
-Risk exposure
+Risk exposure display
+
+Execution Flow
+
+Load environment variables
+
+Authenticate with broker
+
+Validate account + market state
+
+Pull market data
+
+Generate signal
+
+Execute order
+
+Log trade to database
+
+Update portfolio metrics
 
 Data Persistence
 
-The system maintains a local SQLite database:
+A local SQLite database (trading_log.db) stores:
 
 trades
-
-Stores:
 
 Timestamp
 
@@ -194,8 +222,6 @@ Notes
 
 daily_performance
 
-Stores:
-
 Portfolio value
 
 Cash
@@ -208,54 +234,36 @@ Cumulative P&L
 
 This enables offline analytics independent of broker dashboards.
 
-Execution Flow
+Technical Focus Areas
 
-Load environment variables
+Modular system design
 
-Authenticate with brokerage
+Strategy/execution separation
 
-Validate account state and market open status
+Persistent state management
 
-Pull market data
+API abstraction readiness
 
-Generate signal
-
-Execute order
-
-Log trade
-
-Update portfolio state
-
-Design Considerations
-
-Designed for extension into broker-agnostic execution
-
-Modular structure supports backtesting integration
-
-Logging enables auditability
-
-Risk logic separated from signal logic
-
-Database persistence allows historical analytics
+Lightweight alternative data integration
 
 Planned Enhancements
 
-Broker abstraction layer (interface pattern)
+Broker abstraction interface
 
 Event-driven architecture
 
 Backtesting engine integration
 
-Strategy parameter optimization
+Parameter optimization framework
 
-Improved risk engine (position sizing, volatility targeting)
+Volatility-based position sizing
 
-Streaming data support
+Streaming data integration
 
-Structured logging and monitoring
+Structured logging + monitoring
 
 Disclaimer
 
 This project is for research and educational purposes only.
-Paper trading performance does not imply live trading performance.
+Paper trading results do not imply live trading performance.
 No investment advice is provided.
